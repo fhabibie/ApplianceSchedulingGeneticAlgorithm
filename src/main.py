@@ -15,7 +15,7 @@ def time_index(time):
 # CONSTANT
 GEN_SIZE = 200
 POP_SIZE = 100
-MUTATION_RATE = 0.05
+MUTATION_RATE = 0.01
 CROSSOVER_RATE = 0.80
 
 
@@ -166,23 +166,34 @@ class Population():
 
     def parent_selection(self):
 #        Select 2 parent randomly
-        parent_1 = self.population[self.roullete_wheel()]
-        parent_2 = self.population[self.roullete_wheel()]
+        parent_1 = self.population[random.randrange(0,len(self.population))]
+        parent_2 = self.population[random.randrange(0,len(self.population))]
+#        parent_1 = self.population[self.roullete_wheel()]
+#        parent_2 = self.population[self.roullete_wheel()]
         return parent_1, parent_2
     
     def evolve(self):
         new_pop = []
-        for i in range(0, self.size):    
+        for i in range(0, self.size):
+            parent_1, parent_2 = self.parent_selection()
             rand_numb = random.random()
             if (rand_numb <= self.crossover_rate):
-                parent_1, parent_2 = self.parent_selection()
                 offspring_1, offspring_2 = parent_1.crossover(parent_2)
+#                offspring_1.reconstruct_gene()
+#                offspring_2.reconstruct_gene()
                 offspring_1.mutation()
                 offspring_2.mutation()
                 offspring_1.reconstruct_gene()
                 offspring_2.reconstruct_gene()
                 new_pop.append(offspring_1)
                 new_pop.append(offspring_2)
+            else:
+                parent_1.mutation()
+                parent_2.mutation()
+                parent_1.reconstruct_gene()
+                parent_2.reconstruct_gene()
+                new_pop.append(parent_1)
+                new_pop.append(parent_2)
 #        append new pop with current population
         self.population = self.population + new_pop
         self.population.sort(key=lambda x: x.fitness)

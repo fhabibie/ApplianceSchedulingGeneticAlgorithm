@@ -1,5 +1,11 @@
 appliances,start,end,duration,costs
 TV,10:30:00 AM,2:00:00 PM,2,0.13
-Washing Machine,12:00:00 AM,11:30:00 PM,1.5,1.5
-Vacuum Cleaner,12:00:00 AM,11:30:00 PM,1,0.3
+Washing Machine,12:00:00 AM,11:30:00 PM,10,1.5
+Vacuum Cleaner,12:00:00 AM,11:30:00 PM,6,0.3
 Halogen Lamp,8:00:00 PM,11:30:00 PM,1,0.5
+Stove,07:00:00 AM,11:00:00 AM,2,3
+Computer,08:00:00 AM,11:30:00 PM,6,2
+Microwave,07:00:00 AM,11:00:00 AM,1,1
+Lights,06:00:00 PM,11:30:00 PM,5,0.5
+Lights,05:00:00 AM,09:00:00 AM,3,0.5
+Pool Pump,11:00:00 AM,03:00:00 PM,1,2

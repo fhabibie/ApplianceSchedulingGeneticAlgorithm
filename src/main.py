@@ -57,8 +57,12 @@ class Chromosome:
                     self._gene[i][j] = 1 if self._gene[i][j] == 0 else 0
         return Chromosome(self._gene, self.costs, self.time_rules)
 
-    def crossover(self):
-        return Chromosome(self._gene)
+    def crossover(self, mate):
+        length = len(self._gene[0])
+        pivot = random.randint(0, length)
+        gene_1 = np.concatenate((self._gene[:,0:pivot], mate.gene[:,pivot:length]), axis=1)
+        gene_2 = np.concatenate((mate.gene[:,0:pivot], self._gene[:,pivot:length]), axis=1)
+        return Chromosome(gene_1, self.costs, self.time_rules), Chromosome(gene_2, self.costs, self.time_rules)
 
     # Return False if the total time usage of appliances is larger
     # than time usage in problems rules
@@ -76,11 +80,9 @@ class Chromosome:
     def reconstruct_gene(self):
         feasible, index = self.is_feasible()
         if (not feasible):
-            print('reconstruct chromosome until have feasible solutions')
             for i in index:
                 on_index = [index for index in range(0, 48) if self.gene[i][index] == 1]
                 set_off_index_len = len(on_index) - self.time_rules[i][2]
-                print('index allelle one', on_index, 'delete:', set_off_index_len)
                 off_index = random.sample(on_index, set_off_index_len)
                 for j in off_index:
                     self._gene[i][j] = 0
@@ -88,9 +90,7 @@ class Chromosome:
         
 
     def fitness_function(self):
-        print(self.time_rules)
         tmp=0.0
-        print(len(self._gene))
         for i in range(len(self._gene)):
             for j in range(len(TARIFF)):
                 start = TARIFF[j][0]
@@ -106,6 +106,7 @@ class Population():
         self.mutation_rate = mutation_rate
         self.crossover_rate = crossover_rate
         self.appliances_df = appliances_df
+        self.population = self.generate_population()
         
     def generate_random_individual(self):              
 #       Create zeros element array with size = number of appliances * 48 (time sch)
@@ -132,7 +133,33 @@ class Population():
         return 'tuple of chromosome'
 
     def parent_selection(self):
-        return 'population'
+#        Select parent randomly
+        parent_1 = self.population[random.randrange(0, self.size)]
+        parent_2 = self.population[random.randrange(0, self.size)]
+        return parent_1, parent_2
+    
+    def evolve(self):
+        new_pop = []
+        for i in range(0, self.size):    
+            rand_numb = random.random()
+            if (rand_numb <= self.crossover_rate):
+                parent_1, parent_2 = self.parent_selection()
+                offspring_1, offspring_2 = parent_1.crossover(parent_2)
+                offspring_1.mutation()
+                offspring_2.mutation()
+                offspring_1.reconstruct_gene()
+                offspring_2.reconstruct_gene()
+                new_pop.append(offspring_1)
+                new_pop.append(offspring_2)
+#        append new pop with current population
+        self.population = self.population + new_pop
+        self.population.sort(key=lambda x: x.fitness)
+        self.population = self.population[:self.size]
+        
+        best_fitness = self.population[0].fitness
+        return self.population, best_fitness, self.population[self.size-1].fitness
+            
+        
 
 #%%
 if __name__ == "__main__":
@@ -140,14 +167,12 @@ if __name__ == "__main__":
         
     appliances_df = pd.read_csv('sample-data.csv', parse_dates=['start', 'end'], date_parser=parse_date)
     
-    pop = Population(appliances_df, 1)
-    first_pop = pop.generate_population()
-    print('Number of population', len(first_pop))
-    print('Fitness', first_pop[0].fitness)
-    print('Feasible?:', first_pop[0].is_feasible())
+    pop = Population(appliances_df, 10)
+    for i in range(generation_size):
+        population, best_fitness, worst_fitness = pop.evolve()
+        print('GENERATION : ', i+1)
+        print('best fitness:', best_fitness)
+        print('worst fitness:', worst_fitness)
+        print('')
+#    print(first_pop)
     
-    print('\nDo mutation')
-    xx = first_pop[0].mutation()
-    print(xx.is_feasible())
-    xx.reconstruct_gene()
-    print(xx.is_feasible())

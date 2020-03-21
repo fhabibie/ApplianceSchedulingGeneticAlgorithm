@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import random
-import os
 import datetime
 
 # Helper function
@@ -45,6 +44,9 @@ class Chromosome:
     @property
     def fitness(self):
         return self._fitness
+    @fitness.setter
+    def fitness(self, fitness):
+        self._fitness = fitness
 
     # Bitwise mutation
     def mutation(self):
@@ -145,12 +147,27 @@ class Population():
         return pop_lists
 
     def roullete_wheel(self):
-        return 'tuple of chromosome'
+        # set the portion of wheel, fitness-nth/sum(fitness)
+        fitness_list = [chromosome.fitness for chromosome in self.population]
+        total_fitness = sum(fitness_list)
+        prob_fitness = [fitness/total_fitness for fitness in fitness_list]
+       
+        portion_wheel = [prob_fitness[0]]
+        for i in range(1,len(fitness_list)):
+            portion_wheel.append(portion_wheel[i-1]+prob_fitness[i])
+        
+        choice = random.random()
+        selected_index = 0
+        for i in range(1, len(portion_wheel)):
+            if (choice > portion_wheel[i-1] and choice < portion_wheel[i]):
+                selected_index = i
+                break
+        return selected_index
 
     def parent_selection(self):
-#        Select parent randomly
-        parent_1 = self.population[random.randrange(0, self.size)]
-        parent_2 = self.population[random.randrange(0, self.size)]
+#        Select 2 parent randomly
+        parent_1 = self.population[self.roullete_wheel()]
+        parent_2 = self.population[self.roullete_wheel()]
         return parent_1, parent_2
     
     def evolve(self):
@@ -179,15 +196,11 @@ class Population():
 
 #%%
 if __name__ == "__main__":
-    generation_size = 100
+    generation_size = 200
         
     appliances_df = pd.read_csv('sample-data.csv', parse_dates=['start', 'end'], date_parser=parse_date)
     
-    pop = Population(appliances_df, 10)
-#    x = pop.population[0]
-#    x.mutation()
-#    print(x.is_feasible())
-#    x.reconstruct_gene()
+    pop = Population(appliances_df, 100)
     for i in range(generation_size):
         population, best_fitness, worst_fitness = pop.evolve()
         print('GENERATION : ', i+1)

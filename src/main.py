@@ -71,21 +71,36 @@ class Chromosome:
         index_data = []
         for i in range(0, len(self._gene)):
             hour_size = np.sum(self._gene[i][self.time_rules[i][0]:self.time_rules[i][1]])
-            if (hour_size > self.time_rules[i][2]):
+            if (hour_size != self.time_rules[i][2]):
                 feasible = False
-                index_data.append(i)
+                index_data.append((i,hour_size))
         return feasible, index_data
     
     # Reconstruct infeasible solution / chromosome
     def reconstruct_gene(self):
         feasible, index = self.is_feasible()
         if (not feasible):
-            for i in index:
-                on_index = [index for index in range(0, 48) if self.gene[i][index] == 1]
-                set_off_index_len = len(on_index) - self.time_rules[i][2]
-                off_index = random.sample(on_index, set_off_index_len)
-                for j in off_index:
-                    self._gene[i][j] = 0
+            # value is a tuple, consist of index and device usage
+            for value in index:
+                app_index = value[0]
+                time_usage = self.time_rules[app_index][2]
+                current_time_usage = value[1]
+                if (current_time_usage > time_usage):
+                    # turn off the device is random time
+                    on_index = [index for index in range(0, 48) if self._gene[app_index][index] == 1] #list index of on devices
+                    set_off_index_len = len(on_index) - time_usage
+                    off_index = random.sample(on_index, set_off_index_len)
+                    for j in off_index:
+                        self._gene[app_index][j] = 0
+                elif (current_time_usage < time_usage):
+                    # turn on the device is random time
+                    start = self.time_rules[app_index][0]
+                    end = self.time_rules[app_index][1]
+                    off_index = [index for index in range(start, end) if self._gene[app_index][index] == 0]
+                    set_on_index_len = time_usage - current_time_usage
+                    on_index = random.sample(off_index, set_on_index_len)
+                    for j in on_index:
+                        self._gene[app_index][j] = 1
         return 'done'
         
 
@@ -157,7 +172,8 @@ class Population():
         self.population = self.population[:self.size]
         
         best_fitness = self.population[0].fitness
-        return self.population, best_fitness, self.population[self.size-1].fitness
+        worst_fitness = self.population[self.size-1].fitness
+        return self.population, best_fitness, worst_fitness
             
         
 
@@ -168,11 +184,15 @@ if __name__ == "__main__":
     appliances_df = pd.read_csv('sample-data.csv', parse_dates=['start', 'end'], date_parser=parse_date)
     
     pop = Population(appliances_df, 10)
+#    x = pop.population[0]
+#    x.mutation()
+#    print(x.is_feasible())
+#    x.reconstruct_gene()
     for i in range(generation_size):
         population, best_fitness, worst_fitness = pop.evolve()
         print('GENERATION : ', i+1)
         print('best fitness:', best_fitness)
         print('worst fitness:', worst_fitness)
         print('')
-#    print(first_pop)
-    
+        
+        

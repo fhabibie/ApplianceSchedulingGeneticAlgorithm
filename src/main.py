@@ -145,8 +145,26 @@ class Population():
             pop_lists.append(self.generate_random_individual())
   
         return pop_lists
+    
+    def roullette_wheel_normalized(self):
+        # based on paper (Eunji Lee and Hyokyung Bahn)
+        fitness_list = [chromosome.fitness for chromosome in self.population]
+        best = min(fitness_list)
+        worst = max(fitness_list)
+        normalized_list =[(worst-current + (worst-best)/3) for current in fitness_list ]
+        
+        portion_wheel = [normalized_list[0]]
+        for i in range(1, len(normalized_list)):
+            portion_wheel.append(portion_wheel[i-1]+normalized_list[i])
+        choice = random.uniform(0, sum(normalized_list))
+        selected_index = 0
+        for i in range(1, len(portion_wheel)):
+            if (choice > portion_wheel[i-1] and choice < portion_wheel[i]):
+                selected_index = i
+                break
+        return selected_index
 
-    def roullete_wheel(self):
+    def roullette_wheel(self):
         # set the portion of wheel, fitness-nth/sum(fitness)
         fitness_list = [chromosome.fitness for chromosome in self.population]
         total_fitness = sum(fitness_list)

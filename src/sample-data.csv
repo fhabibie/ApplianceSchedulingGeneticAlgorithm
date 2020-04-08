@@ -1,11 +1,21 @@
-appliances,start,end,duration,costs
-TV,10:30:00 AM,2:00:00 PM,2,0.13
-Washing Machine,12:00:00 AM,11:30:00 PM,10,1.5
-Vacuum Cleaner,12:00:00 AM,11:30:00 PM,6,0.3
-Halogen Lamp,8:00:00 PM,11:30:00 PM,1,0.5
-Stove,07:00:00 AM,11:00:00 AM,2,3
-Computer,08:00:00 AM,11:30:00 PM,6,2
-Microwave,07:00:00 AM,11:00:00 AM,1,1
-Lights,06:00:00 PM,11:30:00 PM,5,0.5
-Lights,05:00:00 AM,09:00:00 AM,3,0.5
-Pool Pump,11:00:00 AM,03:00:00 PM,1,2
+appliances;start;end;duration;costs;;;;
+TV;10:30:00 AM;2:00:00 PM;2;0.13;;;;
+Washing Machine;12:00:00 AM;11:30:00 PM;10;1.5;;;;
+Vacuum Cleaner;12:00:00 AM;11:30:00 PM;6;0.3;;;;
+Halogen Lamp;8:00:00 PM;11:30:00 PM;1;0.5;;;;
+Stove;7:00:00 AM;11:00:00 AM;2;3;;;;
+Computer;8:00:00 AM;11:30:00 PM;6;2;;;;
+Microwave;7:00:00 AM;11:00:00 AM;1;1;;;;
+Lights;6:00:00 PM;11:30:00 PM;5;0.5;;;;
+Lights;5:00:00 AM;9:00:00 AM;3;0.5;;;;
+Pool Pump;11:00:00 AM;3:00:00 PM;1;2;;;;
+Refrigerator;12:00:00 AM;11:30:00 PM;24;0.5;;;;
+Laptop;8:00:00 AM;11:30:00 PM;4;0.3;;;;
+Printer;8:00:00 AM;11:30:00 PM;4;0.3;;;;
+AC1;12:00:00 PM;4:00:00 PM;4;1.5;;;;
+AC2;7:00:00 PM;11:30:00 PM;4;1.5;;;;
+Rice cooker;6:00:00 AM;6:00:00 PM;12;0.5;;;;
+Blender;6:00:00 AM;12:00:00 PM;2;0.3;;;;
+Mixer;6:00:00 AM;12:00:00 PM;2;0.3;;;;
+Water heater;5:00:00 AM;8:00:00 PM;12;1.5;;;;
+Hair dryer;5:00:00 AM;10:00:00 AM;4;0.5;;;;L

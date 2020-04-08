@@ -229,6 +229,7 @@ if __name__ == "__main__":
         
     appliances_df = pd.read_csv('sample-data.csv', parse_dates=['start', 'end'], date_parser=parse_date)
     
+    
     pop = Population(appliances_df, 100)
     for i in range(generation_size):
         population, best_fitness, worst_fitness = pop.evolve()

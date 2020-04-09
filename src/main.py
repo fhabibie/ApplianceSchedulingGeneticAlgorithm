@@ -12,10 +12,19 @@ def time_index(time):
     deltatime = time - init_time
     return int(deltatime.total_seconds()/3600*2)
 
+def get_timeline():
+    timeline = []
+    minute = 0
+    for i in range(0,48):
+         tmp_time = parse_date('12:00:00 AM') + datetime.timedelta(minutes=minute)
+         minute = minute + 30
+         timeline.append(tmp_time.strftime("%I:%M %p"))
+    return timeline
+
 # CONSTANT
 GEN_SIZE = 200
 POP_SIZE = 100
-MUTATION_RATE = 0.01
+MUTATION_RATE = 0.1
 CROSSOVER_RATE = 0.80
 
 
@@ -134,7 +143,8 @@ class Population():
             start_element = time_index(self.appliances_df.iloc[i]['start'])
             end_element = time_index(self.appliances_df.iloc[i]['end'])
             time_rules.append([start_element, end_element, max_duration])
-            for j in range(0, max_duration):
+#            for j in range(0, max_duration):
+            for j in range(0, end_element-start_element):
                 rand_index = random.randrange(start_element, end_element+1)
                 app_sch[i, rand_index] = 1
         return Chromosome(app_sch, self.appliances_df['costs'].to_numpy(), time_rules)
@@ -145,8 +155,26 @@ class Population():
             pop_lists.append(self.generate_random_individual())
   
         return pop_lists
+    
+    def roullette_wheel_normalized(self):
+        # based on paper (Eunji Lee and Hyokyung Bahn)
+        fitness_list = [chromosome.fitness for chromosome in self.population]
+        best = min(fitness_list)
+        worst = max(fitness_list)
+        normalized_list =[(worst-current + (worst-best)/3) for current in fitness_list ]
+        
+        portion_wheel = [normalized_list[0]]
+        for i in range(1, len(normalized_list)):
+            portion_wheel.append(portion_wheel[i-1]+normalized_list[i])
+        choice = random.uniform(0, sum(normalized_list))
+        selected_index = 0
+        for i in range(1, len(portion_wheel)):
+            if (choice > portion_wheel[i-1] and choice < portion_wheel[i]):
+                selected_index = i
+                break
+        return selected_index
 
-    def roullete_wheel(self):
+    def roullette_wheel(self):
         # set the portion of wheel, fitness-nth/sum(fitness)
         fitness_list = [chromosome.fitness for chromosome in self.population]
         total_fitness = sum(fitness_list)
@@ -166,10 +194,12 @@ class Population():
 
     def parent_selection(self):
 #        Select 2 parent randomly
-        parent_1 = self.population[random.randrange(0,len(self.population))]
-        parent_2 = self.population[random.randrange(0,len(self.population))]
+#        parent_1 = self.population[random.randrange(0,len(self.population))]
+#        parent_2 = self.population[random.randrange(0,len(self.population))]
 #        parent_1 = self.population[self.roullete_wheel()]
 #        parent_2 = self.population[self.roullete_wheel()]
+        parent_1 = self.population[self.roullette_wheel_normalized()]
+        parent_2 = self.population[self.roullette_wheel_normalized()]
         return parent_1, parent_2
     
     def evolve(self):
@@ -179,8 +209,6 @@ class Population():
             rand_numb = random.random()
             if (rand_numb <= self.crossover_rate):
                 offspring_1, offspring_2 = parent_1.crossover(parent_2)
-#                offspring_1.reconstruct_gene()
-#                offspring_2.reconstruct_gene()
                 offspring_1.mutation()
                 offspring_2.mutation()
                 offspring_1.reconstruct_gene()
@@ -207,16 +235,42 @@ class Population():
 
 #%%
 if __name__ == "__main__":
-    generation_size = 200
+    generation_size = 100
         
     appliances_df = pd.read_csv('sample-data.csv', parse_dates=['start', 'end'], date_parser=parse_date)
     
-    pop = Population(appliances_df, 100)
+    
+    pop = Population(appliances_df, 50)
+    best_list = []
+    worst_list = []
     for i in range(generation_size):
         population, best_fitness, worst_fitness = pop.evolve()
+        best_list.append(best_fitness)
+        worst_list.append(worst_fitness)
         print('GENERATION : ', i+1)
         print('best fitness:', best_fitness)
         print('worst fitness:', worst_fitness)
         print('')
-        
-        
+    
+    # Save final solution
+    final = pop.population
+    solution = pd.DataFrame(final[0].gene, index=appliances_df['appliances'].values, columns=get_timeline())
+    solution.to_csv('solution.csv')
+    
+    #%%
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    # Ploting fitness values over generation
+    plt.subplots(figsize=(10,10))
+    plt.plot(best_list, label='Best Fitnees')
+    plt.plot(worst_list, label='Worst Fitness')
+    plt.xlabel('Generation nth')
+    plt.ylabel('Fitness Value')
+    plt.legend()
+    plt.show()
+    
+    # Plot solution
+    plt.subplots(figsize=(15,10))
+    ax = sns.heatmap(solution, linewidth=0.5, cmap="YlGnBu")
+    plt.show()
+    
